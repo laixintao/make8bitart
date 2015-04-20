@@ -8,7 +8,7 @@ $(function() {
 
   /*** VARIABULLS ***/
 
-  var ctx, pickerPaletteCtx, leftSide, topSide, xPos, yPos, resetSelectStart, saveSelection, rect, historyPointer, drawPathId;
+  var ctx, pickerPaletteCtx, leftSide, topSide, xPos, yPos, resetSelectStart, saveSelection, rect, historyPointer;
   var undoRedoHistory = [];
   var drawHistory = [];
 
@@ -249,7 +249,7 @@ $(function() {
 
     if ( !areColorsEqual( hoverRGB, pixel.color, pixel.size) ) {
       drawPixel(e.pageX, e.pageY, pixel.color, pixel.size);
-      pushToHistory(action.index, action.draw, e.pageX, e.pageY, hoverRGB, pixel.color, pixel.size, drawPathId);
+      pushToHistory(action.index, action.draw, e.pageX, e.pageY, hoverRGB, pixel.color, pixel.size);
     }
   };
 
@@ -404,7 +404,7 @@ $(function() {
     }
   };
 
-  var pushToHistory = function( actionIndex, actionType, x, y, rgbOriginal, rgbNew, pixelSize, drawPathId) {
+  var pushToHistory = function( actionIndex, actionType, x, y, rgbOriginal, rgbNew, pixelSize) {
     // push to undoRedoHistory
     var pixelDrawn = {
       index : actionIndex,
@@ -413,8 +413,7 @@ $(function() {
       yPos : y,
       originalColor : rgbOriginal,
       newColor : rgbNew,
-      pixelSize: pixelSize,
-      drawPathId: drawPathId,
+      pixelSize: pixelSize
     };
     undoRedoHistory.push(pixelDrawn);
     drawHistory.push(pixelDrawn);
@@ -444,17 +443,6 @@ $(function() {
     }
 
     drawPixel(undoRedoHistory[pointer].xPos, undoRedoHistory[pointer].yPos, undoRedoColor, undoRedoHistory[pointer].pixelSize);
-
-    if (undoRedoHistory[pointer].drawPathId &&
-        undoRedoHistory[nextPointer] &&
-        undoRedoHistory[nextPointer].drawPathId == undoRedoHistory[pointer].drawPathId) {
-      if (undoFlag) {
-        undoRedo(--historyPointer, undoFlag);
-      }
-      else {
-        undoRedo(++historyPointer, undoFlag);
-      }
-    }
   };
 
   var resetModes = function() {
@@ -774,8 +762,6 @@ $(function() {
         paint( e.pageX, e.pageY, pixel.color, origRGB );
       }
       else {
-        drawPathId = Date.now();
-
         // draw mode
         mode.drawing = true;
 
@@ -783,7 +769,7 @@ $(function() {
         drawPixel(e.pageX, e.pageY, pixel.color, pixel.size);
 
         if ( !areColorsEqual( origRGB, pixel.color) ) {
-          pushToHistory(action.index, action.draw, e.pageX, e.pageY, origRGB, pixel.color, pixel.size, drawPathId);
+          pushToHistory(action.index, action.draw, e.pageX, e.pageY, origRGB, pixel.color, pixel.size);
         }
 
         DOM.$canvas.on('mousemove', drawOnMove);
@@ -816,8 +802,6 @@ $(function() {
     if ( !mode.save ) {
       DOM.$canvas.off('mousemove');
       mode.drawing = false;
-
-      drawPathId = null;
 
       // save
       saveToLocalStorage();
